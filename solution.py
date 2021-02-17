@@ -25,12 +25,38 @@ def firstPass(lst: list) -> dict:
         for j in i:
             if j not in basketsTable:
                 basketsTable[j] = 1
+
             else:
                 basketsTable[j] += 1
-            
 
     return basketsTable
 
+def findFrequentSingletons(singletonFreq: dict, support: int) -> list:
+    lst = []
+    for number in singletonFreq:
+        if(singletonFreq[number] >= support):
+            lst.append(number)
+
+    return lst
+
+
+def findFrequentPairs(freqSingletons: list, originalData: dict, support: int) -> dict:
+    freqPairs = {}
+    for i in freqSingletons:
+        for j in freqSingletons:
+            pass
+    return freqPairs
+
 
 dct = firstPass(basketsContainer)
-print(dct)
+#print(dct)
+#print(dct["1081"])
+
+freqSingletons = findFrequentSingletons(dct, 880)
+print(freqSingletons)
+
+
+#the one below works! but it's inefficient
+#for i in freqSingletons:
+#    for j in freqSingletons:
+#        print(i,j)
