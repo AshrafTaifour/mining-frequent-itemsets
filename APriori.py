@@ -12,11 +12,16 @@ class aPriori:
                 line = fp.readline()
             return basketsContainer
 
-    def firstPass(self, lst: list) -> dict:
+    def countSingletons(self, lst: list, chunkSize: int) -> dict:
         basketsTable = {}
+
+        # to avoid out of index errors
+        if(chunkSize > len(lst)):
+            chunkSize = len(lst)
+
         # select a basket
-        for i in lst:
-            for j in i:
+        for i in range(chunkSize):
+            for j in lst[i]:
                 if j not in basketsTable:
                     basketsTable[j] = 1
 
@@ -80,18 +85,17 @@ if __name__ is "__main__":
 
     # print(basketsContainer)
 
-    dct = aPriori.firstPass(0, basketsContainer)
-    # print(dct)
-    # print(dct["1081"])
+    dct = aPriori.countSingletons(0, basketsContainer, 1000000)
+    print(dct)
 
-    freqSingletons = aPriori.findFrequentSingletons(0, dct, 880)
+    #freqSingletons = aPriori.findFrequentSingletons(0, dct, 880)
     # print(freqSingletons)
 
-    potPairs = aPriori.potentialPairs(0, freqSingletons)
+    #potPairs = aPriori.potentialPairs(0, freqSingletons)
     # print(potPairs)
 
-    pairCount = aPriori.countAllPairs(0, potPairs, basketsContainer)
-    freqPairs = aPriori.findFrequentPairs(0, pairCount, 880)
+    #pairCount = aPriori.countAllPairs(0, potPairs, basketsContainer)
+    #freqPairs = aPriori.findFrequentPairs(0, pairCount, 880)
 
-    print(freqPairs)
+    # print(freqPairs)
     # check count for every candidate pairs
