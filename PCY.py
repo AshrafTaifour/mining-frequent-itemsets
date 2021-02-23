@@ -1,7 +1,7 @@
 import math
 import time
-# USES PYTHON3.7 PLEASE RUN THE SCRIPT USING python3.7 command (with numpy and bitvector installed)
 from BitVector import BitVector
+# USES PYTHON3.7 PLEASE RUN THE SCRIPT USING python3.7 command (with numpy and bitvector installed)
 # the following is the link to the library https://engineering.purdue.edu/kak/dist/BitVector-3.4.9.html
 # parsing file is the same action so we will import the implemntation in Apriori.py
 from APriori import aPriori
@@ -24,74 +24,68 @@ class PCY:
 
         # select a basket
         for i in range(chunkSize):
-            for basket in range(0, len(originalData[i])):
+            for j in range(0, len(originalData[i])):
                 # add basket to hashtable ()
-                if basket not in basketsTable:
-                    basketsTable[basket] = 1
+                if originalData[i][j] not in basketsTable:
+                    basketsTable[originalData[i][j]] = 1
                 else:
-                    basketsTable[basket] += 1
+                    basketsTable[originalData[i][j]] += 1
                 # hash pair of items and add their count to the bit vector
-                for j in range(0, len(originalData[basket])):
-                    for k in range(j+1, len(originalData[basket])):
-                        tupl = originalData[basket][j], originalData[basket][k]
-                        hashNum = PCY.hashPair(tupl)
-                        if hashNum not in hashCount:
-                            hashCount[hashNum] = 1
-                        else:
-                            hashCount[hashNum] += 1
+                for k in range(j+1, len(originalData[i])):
+                    tupl = originalData[i][j], originalData[i][k]
+                    hashNum = PCY.hashPair(tupl)
+
+                    if hashNum not in hashCount:
+                        hashCount[hashNum] = 1
+                    else:
+                        hashCount[hashNum] += 1
 
         return basketsTable, hashCount
 
     def createBitVector(self, hashCount: dict, chunkSize: int, support: int) -> BitVector:
-        # bitvector's size is 10% of chunksize
-        bitVectorSize = math.floor(chunkSize/10)
-        bitVector = BitVector(size=bitVectorSize)
-        for i in range(50021):  # length of hashCount
-            # if it's frequent
-            if i in hashCount:
-                if(hashCount[i] >= support):
-                    bitVector[i] = 1
-            else:
-                pass
+        # max size for bitvector so we can hash any potential combination
+        bitVector = BitVector(size=50021)
+        for bucket in hashCount:  # length of hashCount
+            if(hashCount[bucket] >= support):
+                bitVector[bucket] = 1
 
         return bitVector
 
-    def countAllPairs(self, potentialPairs: list, originalData: list) -> dict:
-        countAllPairs = {}
-        for pair in potentialPairs:
-            print(f"counting all occurances of pair {pair}...")
-            for basket in originalData:
-                # if both pair items are in the basket
-                if pair[0] in basket and pair[1] in basket:
-                    # if pair not in dictionary, add them
-                    if pair not in countAllPairs:
-                        countAllPairs[pair] = 1
-                    # pair already in hash table/dictionary
-                    else:
-                        # increment count of pair
-                        countAllPairs[pair] += 1
-                # if pair aren't in basket
-                else:
-                    pass
+    def countHashedPairs(self, bitvector: dict, countSingletons: dict, originalData: list, chunkSize: int, support: int) -> dict:
+        countPairs = dict()
+        for i in range(chunkSize):
+            for j in range(len(originalData[i])):
+                for k in range(j+1, len(originalData[i])):
+                    firstItem, secondItem = int(
+                        originalData[i][j]), int(originalData[i][k])
+                    tupl = firstItem, secondItem
+                    #print(firstItem, secondItem)
+                    hashresult = PCY.hashPair(tupl)
+                    # if bitvector is 1 (bucket is frequent)
+                    if bitvector[hashresult]:
+                        # if both singletons are frequent
+                        if countSingletons[str(firstItem)] >= support and countSingletons[str(secondItem)] >= support:
+                            # if pair not in dictionary add them
+                            if tupl not in countPairs:
+                                countPairs[tupl] = 1
 
-        return countAllPairs
+                            else:
+                                countPairs[tupl] += 1
+        return countPairs
 
 
-    # create bitvector
-    # pass 1 you count freq of singletons AND you use the hash function on EVERY pair and map the count to the bitvector
-    # pass 2 you check if pair i,j (if i is freq, if j is freq) AND if i,j hashes to a frequent bitvector
 if __name__ is "__main__":
+
     # open file and create a list for each line
-    # initialize bitvector with values of 0 and size 10
-    bitVector = BitVector(size=10)
-    print(bitVector)
     fp = "retail.txt"
     basketsContainer = aPriori.parseFile(0, fp)
 
-    countSingletons, countHash = PCY.firstPass(0, basketsContainer, 10000)
-    bv = PCY.createBitVector(0, countHash, 10000, 100)
-    print(bv)
-    #dct = aPriori.countSingletons(0, basketsContainer, 1000000)
+    countSingletons, hashCount = PCY.firstPass(0, basketsContainer, 10000)
 
-    #freqSingletons = aPriori.findFrequentSingletons(0, dct, 880)
-    # print(freqSingletons)
+    bitVector = PCY.createBitVector(0, hashCount, 10000, 100)
+    print(bitVector)
+
+    pairCount = PCY.countHashedPairs(
+        0, bitVector, countSingletons, basketsContainer, 10000, 100)
+
+    print(pairCount)
