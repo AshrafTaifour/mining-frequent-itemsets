@@ -1,3 +1,7 @@
+import time
+import math
+
+
 class aPriori:
     def parseFile(self, filepath: str) -> list:
         basketsContainer = []
@@ -74,28 +78,49 @@ class aPriori:
         lst = []
         for pair in potentialPairs:
             if(potentialPairs[pair] >= support):
+                print(f"Pair {pair} has {potentialPairs[pair]} count")
                 lst.append(pair)
 
         return lst
 
 
 if __name__ is "__main__":
-    fp = "retail.txt"
-    basketsContainer = aPriori.parseFile(0, fp)
 
-    # print(basketsContainer)
+    def runApriori(chnkSize: int, supp: int):
+        start = time.perf_counter()
+        fp = "retail.txt"
+        basketsContainer = aPriori.parseFile(0, fp)
 
-    dct = aPriori.countSingletons(0, basketsContainer, 1000000)
-    print(dct)
+        # print(basketsContainer)
+        ##################################### PASS 1 #####################################
+        dct = aPriori.countSingletons(0, basketsContainer, chnkSize)
+        # 88163
+        # print(dct)
 
-    #freqSingletons = aPriori.findFrequentSingletons(0, dct, 880)
-    # print(freqSingletons)
+        freqSingletons = aPriori.findFrequentSingletons(0, dct, supp)
+        del dct
+        # print(freqSingletons)
 
-    #potPairs = aPriori.potentialPairs(0, freqSingletons)
-    # print(potPairs)
+        ##################################### PASS 2 #####################################
+        potPairs = aPriori.potentialPairs(0, freqSingletons)
+        # print(potPairs)
+        del freqSingletons
 
-    #pairCount = aPriori.countAllPairs(0, potPairs, basketsContainer)
-    #freqPairs = aPriori.findFrequentPairs(0, pairCount, 880)
+        pairCount = aPriori.countAllPairs(0, potPairs, basketsContainer)
+        del basketsContainer, potPairs
+        freqPairs = aPriori.findFrequentPairs(0, pairCount, supp)
+        del pairCount
+        end = time.perf_counter()
 
+        print(f"Apriori finished at {(end - start) * 1000:0.3f} ms")
+
+    def runAprioriAtPercent(dataSetPercent: int, supportPercent: int):
+        dataSetPercent = math.floor(88163 * (dataSetPercent/100))
+        supportPercent = math.floor(dataSetPercent * (supportPercent / 100))
+        runApriori(dataSetPercent, supportPercent)
+        print(f"dataset size {dataSetPercent} support is {supportPercent}")
+
+    runAprioriAtPercent(1, 10)
     # print(freqPairs)
+    # print(len(dct))
     # check count for every candidate pairs

@@ -52,6 +52,10 @@ class PCY:
         return bitVector
 
     def countHashedPairs(self, bitvector: dict, countSingletons: dict, originalData: list, chunkSize: int, support: int) -> dict:
+        # to avoid out of index errors
+        if(chunkSize > len(originalData)):
+            chunkSize = len(originalData)
+
         countPairs = dict()
         for i in range(chunkSize):
             for j in range(len(originalData[i])):
@@ -59,7 +63,7 @@ class PCY:
                     firstItem, secondItem = int(
                         originalData[i][j]), int(originalData[i][k])
                     tupl = firstItem, secondItem
-                    #print(firstItem, secondItem)
+                    # print(firstItem, secondItem)
                     hashresult = PCY.hashPair(tupl)
                     # if bitvector is 1 (bucket is frequent)
                     if bitvector[hashresult]:
@@ -73,19 +77,44 @@ class PCY:
                                 countPairs[tupl] += 1
         return countPairs
 
+    def runPCY(self, chnkSize: int, supp: int):
+        start = time.perf_counter()
+        # open file and create a list for each line
+        fp = "retail.txt"
+        basketsContainer = aPriori.parseFile(0, fp)
+        ##################################### PASS 1 #####################################
+        countSingletons, hashCount = PCY.firstPass(
+            0, basketsContainer, chnkSize)
+
+        bitVector = PCY.createBitVector(0, hashCount, chnkSize, supp)
+        # print(bitVector)
+        del hashCount
+
+        ##################################### PASS 2 #####################################
+        pairCount = PCY.countHashedPairs(
+            0, bitVector, countSingletons, basketsContainer, chnkSize, supp)
+        del basketsContainer, bitVector, countSingletons
+
+        # print(pairCount)
+
+        freqPairs = aPriori.findFrequentPairs(0, pairCount, supp)
+        del pairCount
+
+        end = time.perf_counter()
+        print(f"PCY finished at {(end - start) * 1000:0.3f} ms")
+
+    #
+    # def runMultiStage(self, chnkSize: int, supp: int):
+
 
 if __name__ is "__main__":
 
-    # open file and create a list for each line
-    fp = "retail.txt"
-    basketsContainer = aPriori.parseFile(0, fp)
+    def runPCYAtPercent(dataSetPercent: int, supportPercent: int):
+        dataSetPercent = math.floor(88163 * (dataSetPercent/100))
+        supportPercent = math.floor(dataSetPercent * (supportPercent / 100))
+        PCY.runPCY(0, dataSetPercent, supportPercent)
+        print(f"dataset size {dataSetPercent} support is {supportPercent}")
 
-    countSingletons, hashCount = PCY.firstPass(0, basketsContainer, 10000)
-
-    bitVector = PCY.createBitVector(0, hashCount, 10000, 100)
-    print(bitVector)
-
-    pairCount = PCY.countHashedPairs(
-        0, bitVector, countSingletons, basketsContainer, 10000, 100)
-
-    print(pairCount)
+    runPCYAtPercent(100, 1)
+    # print(freqPairs)
+    # print(len(countSingletons))
